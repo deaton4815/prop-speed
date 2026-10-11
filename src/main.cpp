@@ -13,6 +13,7 @@ namespace
   constexpr uint32_t ARM_DELAY_MS    = 3000;
 
   constexpr uint8_t IR_PIN = 2;
+  constexpr uint32_t MIN_PULSE_SPACING_US = 1000;   // ignore edges closer than 1 ms
 
   constexpr uint32_t WINDOW_MS = 1000;
   uint32_t lastWindowMs = 0;
@@ -38,7 +39,7 @@ void setup() {
 
   pinMode(DEBUG_PIN, OUTPUT);
 
-  pulseCounter.begin(IR_PIN);
+  pulseCounter.begin(IR_PIN, MIN_PULSE_SPACING_US);
 
 }
 
