@@ -1,18 +1,37 @@
 #include <Arduino.h>
+#include <Servo.h>
 
-// put function declarations here:
-int myFunction(int, int);
+namespace
+{
+  Servo esc;
+
+  constexpr uint8_t  ESC_PIN         = 9;
+  constexpr uint16_t THROTTLE_MIN_US = 1000;  // idle / armed
+  constexpr uint16_t THROTTLE_MAX_US = 1300;  // test limit; raise later with care
+  constexpr uint32_t ARM_DELAY_MS    = 3000;
+
+  uint16_t throttleUs = THROTTLE_MIN_US;
+}
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  Serial.begin(115200);
+
+  esc.attach(ESC_PIN, 1000, 2000);
+  esc.writeMicroseconds(THROTTLE_MIN_US);
+  delay(ARM_DELAY_MS);                      // let the ESC arm at idle
+
+  Serial.println("ESC armed. Enter throttle in us (1000-1300), 1000 = stop.");
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  if (Serial.available() > 0) {
+    long requested = Serial.parseInt();
+    if (requested >= THROTTLE_MIN_US) {     // ignore junk / stray newline (parses as 0)
+      throttleUs = constrain(requested, THROTTLE_MIN_US, THROTTLE_MAX_US);
+      Serial.print("Throttle: ");
+      Serial.print(throttleUs);
+      Serial.println(" us");
+    }
+  }
+  esc.writeMicroseconds(throttleUs);
 }
