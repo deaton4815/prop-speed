@@ -2,6 +2,7 @@
 #include <Servo.h>
 
 #include "PulseCounter.h"
+#include "FastIO.h"
 
 namespace
 {
@@ -20,16 +21,16 @@ namespace
 
   constexpr uint8_t DEBUG_PIN = 7;
 
+  constexpr uint8_t PULSES_PER_REV = 2; 
+
   uint16_t throttleUs = THROTTLE_MIN_US;
 
   PulseCounter pulseCounter;
-
-  bool lastState = false;
-  bool newState = false;
 }
 
 void setup() {
   Serial.begin(115200);
+  Serial.setTimeout(10);                    // keep parseInt() from stalling loop()
 
   esc.attach(ESC_PIN, 1000, 2000);
   esc.writeMicroseconds(THROTTLE_MIN_US);
@@ -39,6 +40,7 @@ void setup() {
 
   pulseCounter.begin(IR_PIN, MIN_PULSE_SPACING_US, DEBUG_PIN);
 
+  lastWindowMs = millis();                  // first window starts now, after the arming delay
 }
 
 
@@ -50,9 +52,12 @@ void loop() {
 
     uint32_t pulses = pulseCounter.takeCount();
 
+    // revolutions in this window, scaled up to revolutions per minute
+    float rpm = (static_cast<float>(pulses) / PULSES_PER_REV) * (60000.0f / WINDOW_MS);
+
     Serial.print(millis());
     Serial.print(",");
-    Serial.println(pulses);
+    Serial.println(rpm, 0);
   }
 
   if (Serial.available() > 0) {
@@ -66,11 +71,4 @@ void loop() {
   }
   esc.writeMicroseconds(throttleUs);
 
-  newState = digitalRead(IR_PIN);
-  if (newState != lastState) {
-    lastState = newState;
-    Serial.println("State Change!");
-    Serial.println(lastState);
-  }
-  
 }
