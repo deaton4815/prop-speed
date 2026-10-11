@@ -10,7 +10,13 @@ namespace
   constexpr uint16_t THROTTLE_MAX_US = 1300;  // test limit; raise later with care
   constexpr uint32_t ARM_DELAY_MS    = 3000;
 
+  constexpr uint8_t IR_PIN = 2;
+  constexpr uint8_t DEBUG_PIN = 7;
+
   uint16_t throttleUs = THROTTLE_MIN_US;
+
+  bool lastState = false;
+  bool newState = false;
 }
 
 void setup() {
@@ -21,7 +27,12 @@ void setup() {
   delay(ARM_DELAY_MS);                      // let the ESC arm at idle
 
   Serial.println("ESC armed. Enter throttle in us (1000-1300), 1000 = stop.");
+
+  pinMode(IR_PIN, INPUT);
+  pinMode(DEBUG_PIN, OUTPUT);
+
 }
+
 
 void loop() {
   if (Serial.available() > 0) {
@@ -34,4 +45,12 @@ void loop() {
     }
   }
   esc.writeMicroseconds(throttleUs);
+
+  newState = digitalRead(IR_PIN);
+  if (newState != lastState) {
+    lastState = newState;
+    Serial.println("State Change!");
+    Serial.println(lastState);
+  }
+  
 }
