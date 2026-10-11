@@ -37,9 +37,7 @@ void setup() {
 
   Serial.println("ESC armed. Enter throttle in us (1000-1300), 1000 = stop.");
 
-  pinMode(DEBUG_PIN, OUTPUT);
-
-  pulseCounter.begin(IR_PIN, MIN_PULSE_SPACING_US);
+  pulseCounter.begin(IR_PIN, MIN_PULSE_SPACING_US, DEBUG_PIN);
 
 }
 
